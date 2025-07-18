@@ -1,0 +1,15 @@
+[
+  {
+    "type": "chart",
+    "setting": {
+      "x": 25,
+      "y": 25
+    }
+  },
+  {
+    "type": "form",
+    "setting": {
+      "form": "123"
+    }
+  }
+]
