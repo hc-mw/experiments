@@ -1,0 +1,31 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: hardik@123
+      MYSQL_DATABASE: todo_db
+      MYSQL_USER: hardik
+      MYSQL_PASSWORD: hardik@123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # app:
+  #   build: .
+  #   restart: always
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     DB_USER: root
+  #     DB_PASSWORD: hardik@123
+  #     DB_NAME: todo_db
+  #     DB_HOST: db
+  #     DB_PORT: 3306
+  #     JWT_SECRET: your_jwt_secret
+  #   ports:
+  #     - "8080:8080"
+
+volumes:
+  db_data:
