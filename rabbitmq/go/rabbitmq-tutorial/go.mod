@@ -1,4 +1,4 @@
-module rabbitmq-hello-world
+module rabbitmq-tut
 
 go 1.24.6
 
