@@ -16,12 +16,12 @@ func main() {
 	})
 	defer connObj.CloseConnection()
 
-	q := connObj.DeclareQueue("hello")
+	q := connObj.DeclareQueue("task_queue", true)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	body := utils.BodyFrom(os.Args)
 
-	connObj.PublishOnQueue(ctx, q.Name, body)
+	connObj.PublishOnQueue(ctx, q.Name, body, "", true)
 }

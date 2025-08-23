@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"rabbitmq-tut/utils"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -24,9 +25,14 @@ func main() {
 	})
 	defer connObj.CloseConnection()
 
-	q := connObj.DeclareQueue("hello")
+	ch := connObj.GetChannel()
 
-	msgs := connObj.ConsumeFromQueue(q.Name)
+	err := ch.Qos(1, 0, false)
+	utils.FailOnError(err, "failed to set QoS")
+
+	q := connObj.DeclareQueue("task_queue", true)
+
+	msgs := connObj.ConsumeFromQueue(q.Name, false)
 
 	forever := make(chan struct{})
 
@@ -41,6 +47,9 @@ func main() {
 			log.Printf("message %d done after %d seconds of wait!", v, dotCount)
 
 			id.Add(1)
+			if !strings.Contains(string(d.Body), "no ack") {
+				d.Ack(false)
+			}
 		}
 	}()
 

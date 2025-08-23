@@ -52,38 +52,39 @@ func (rm *RabbitMQConn) CloseConnection() {
 	FailOnError(err, "failed to close channel connection")
 }
 
-func (rm *RabbitMQConn) GetConn() *amqp091.Connection {
-	return rm.conn
-}
-
 func (rm *RabbitMQConn) GetChannel() *amqp091.Channel {
+	if rm.channel == nil {
+		FailOnError(fmt.Errorf("channel is nil"), "failed to get channel")
+	}
 	return rm.channel
 }
 
-func (rm *RabbitMQConn) DeclareQueue(name string) amqp091.Queue {
-	q, err := rm.channel.QueueDeclare("hello", false, false, false, false, nil)
+func (rm *RabbitMQConn) DeclareQueue(name string, durability bool) amqp091.Queue {
+	q, err := rm.channel.QueueDeclare("hello", durability, false, false, false, nil)
 	FailOnError(err, "failed to declare a queue")
 
 	rm.queue = q
 	return rm.queue
 }
 
-func (rm *RabbitMQConn) GetQueue() amqp091.Queue {
-	return rm.queue
-}
-
-func (rm *RabbitMQConn) PublishOnQueue(ctx context.Context, queueName, message string) {
-	err := rm.channel.PublishWithContext(ctx, "", queueName, false, false, amqp091.Publishing{
+func (rm *RabbitMQConn) PublishOnQueue(ctx context.Context, queueName, message, exchangeName string, msgPersistency bool) {
+	opts := amqp091.Publishing{
 		ContentType: "text/plain",
 		Body:        []byte(message),
-	})
+	}
+
+	if msgPersistency {
+		opts.DeliveryMode = amqp091.Persistent
+	}
+
+	err := rm.channel.PublishWithContext(ctx, exchangeName, queueName, false, false, opts)
 
 	FailOnError(err, "failed to publish the message")
 	log.Printf(" [x] Sent %q\n", message)
 }
 
-func (rm *RabbitMQConn) ConsumeFromQueue(queueName string) <-chan amqp091.Delivery {
-	msgs, err := rm.channel.Consume(queueName, "", true, false, false, false, nil)
+func (rm *RabbitMQConn) ConsumeFromQueue(queueName string, autoAck bool) <-chan amqp091.Delivery {
+	msgs, err := rm.channel.Consume(queueName, "", autoAck, false, false, false, nil)
 	if err != nil {
 		FailOnError(err, "failed to consume the message")
 	}
